@@ -23,6 +23,8 @@ describe "HomeController" do
     button.class.should == UIRoundedRectButton 
     button = @subject.send(:set_text_button)
     button.class.should == UIRoundedRectButton 
+    button = @subject.send(:send_to_imgur_and_email_button)
+    button.class.should == UIRoundedRectButton 
   end 
 
   it "has a UIImageView subview with no initial image" do
@@ -34,8 +36,8 @@ describe "HomeController" do
   it "has button subviews" do
     subviews = @subject.view.subviews
     button_subviews = subviews.select{|s| s.class == UIRoundedRectButton}
-    button_subviews.size.should == 2
-    ['Get Image', 'Set Text'].each do |title|
+    button_subviews.size.should == 3
+    ['Get Image', 'Set Text', 'Imgur and Email'].each do |title|
       label_titles = button_subviews.map(&:titleLabel).map(&:text)
       label_titles.include?(title).should.equal(true)
     end
