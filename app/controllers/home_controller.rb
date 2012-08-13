@@ -17,18 +17,23 @@ class HomeController < UIViewController
     view.addSubview(send_to_imgur_and_email_button) 
   end
 
-
   def pickImage
-    imagePicker = UIImagePickerController.alloc.init
-    if UIImagePickerController.isSourceTypeAvailable(UIImagePickerControllerSourceTypeCamera)
-      imagePicker.setSourceType(UIImagePickerControllerSourceTypeCamera)
+    if Device.camera.rear?
+      BW::Device.camera.rear.picture(media_types: [:image]) do |result|
+        scale_and_set_image_view(result)
+      end
     else
-      imagePicker.setSourceType(UIImagePickerControllerSourceTypePhotoLibrary)
+      BW::Device.camera.any.picture(media_types: [:image]) do |result|
+        scale_and_set_image_view(result)
+      end
     end
+  end
 
-    imagePicker.mediaTypes = [KUTTypeImage]
-    imagePicker.delegate = self
-    presentModalViewController(imagePicker, animated:true)
+  def scale_and_set_image_view(result)
+    @image = result[:original_image]      
+    smaller_image = scaleToSize(@image, [480,640])
+    @image_view.setImage(@image)
+    dismissModalViewControllerAnimated(true)
   end
 
   def scaleToSize(image, size)
@@ -39,12 +44,16 @@ class HomeController < UIViewController
     scaledImage
   end
 
-  def imagePickerController(picker, didFinishPickingMediaWithInfo:info)
-    image = info.objectForKey(UIImagePickerControllerOriginalImage)
-    smaller_image = scaleToSize(image, [480,640])
-    @image_view.setImage(image)
-    dismissModalViewControllerAnimated(true)
+  def addTextToImage
+p "hellooooo"
+    myImage = @image 
+    UIGraphicsBeginImageContext(myImage.size)
+    myImage.drawAtPoint(CGPointZero)
+    "Watermark".drawAtPoint(CGPointMake(10,10), withFont:(UIFont.systemFontOfSize(100)))
+    textImage = UIGraphicsGetImageFromCurrentImageContext();
+    @image_view.setImage(textImage)
   end
+                  
 
   private
 
@@ -69,6 +78,7 @@ class HomeController < UIViewController
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
     button.frame = [[105,400],[75,40]]
     button.font = UIFont.systemFontOfSize(10)
+    button.addTarget(self, action:'addTextToImage', forControlEvents:UIControlEventTouchUpInside)
     button.setTitle('Set Text', forState:UIControlStateNormal)
     button
   end

@@ -1,4 +1,5 @@
 describe "HomeController" do
+  tests HomeController
   before do
     @app = UIApplication.sharedApplication
     @subject = @app.windows.first.rootViewController
@@ -42,5 +43,10 @@ describe "HomeController" do
       label_titles.include?(title).should.equal(true)
     end
   end 
+
+  it 'taps the pickImage button' do
+    tap 'Get Image'
+    1.should == 1
+  end
 
 end
