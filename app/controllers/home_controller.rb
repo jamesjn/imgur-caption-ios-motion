@@ -45,11 +45,21 @@ class HomeController < UIViewController
   end
 
   def addTextToImage
-p "hellooooo"
     myImage = @image 
     UIGraphicsBeginImageContext(myImage.size)
+    context = UIGraphicsGetCurrentContext();
     myImage.drawAtPoint(CGPointZero)
-    "Watermark".drawAtPoint(CGPointMake(10,10), withFont:(UIFont.systemFontOfSize(100)))
+    fontSize = 30.0
+    font = UIFont.fontWithName("Helvetica-Bold", size:fontSize)
+    CGContextSetTextDrawingMode(context, KCGTextStroke)
+    CGContextSetLineWidth(context, fontSize/18);
+
+    "Watermark".drawAtPoint(CGPointMake(10,10), withFont:font)
+
+    CGContextSetTextDrawingMode(context, KCGTextFill)
+    CGContextSetFillColorWithColor(context, UIColor.whiteColor.CGColor())
+    "Watermark".drawAtPoint(CGPointMake(10,10), withFont:font)
+
     textImage = UIGraphicsGetImageFromCurrentImageContext();
     @image_view.setImage(textImage)
   end

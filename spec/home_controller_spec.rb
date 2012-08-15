@@ -46,6 +46,7 @@ describe "HomeController" do
 
   it 'taps the pickImage button' do
     tap 'Get Image'
+    tap 'Saved Photos'
     1.should == 1
   end
 
