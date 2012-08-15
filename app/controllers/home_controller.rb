@@ -12,7 +12,10 @@ class HomeController < UIViewController
     view.backgroundColor = UIColor.alloc.initWithPatternImage(UIImage.imageNamed("brushedmetal.png"))
     @image_view = image_view
     view.addSubview(@image_view) 
-    view.addSubview(get_image_button) 
+    if Device.camera.rear?
+      view.addSubview(get_image_camera_button) 
+    end
+    view.addSubview(get_image_album_button) 
     view.addSubview(set_text_button) 
     view.addSubview(send_to_imgur_and_email_button) 
   end
@@ -32,7 +35,8 @@ class HomeController < UIViewController
   def scale_and_set_image_view(result)
     @image = result[:original_image]      
     smaller_image = scaleToSize(@image, [480,640])
-    @image_view.setImage(@image)
+    @image_view.setImage(smaller_image)
+    @image = smaller_image
     dismissModalViewControllerAnimated(true)
   end
 
@@ -46,19 +50,21 @@ class HomeController < UIViewController
 
   def addTextToImage
     myImage = @image 
+    height = myImage.size.height
+    width = myImage.size.width
     UIGraphicsBeginImageContext(myImage.size)
     context = UIGraphicsGetCurrentContext();
     myImage.drawAtPoint(CGPointZero)
-    fontSize = 30.0
-    font = UIFont.fontWithName("Helvetica-Bold", size:fontSize)
+    fontSize = height/20
+    font = UIFont.fontWithName("TrebuchetMS", size:fontSize)
     CGContextSetTextDrawingMode(context, KCGTextStroke)
     CGContextSetLineWidth(context, fontSize/18);
 
-    "Watermark".drawAtPoint(CGPointMake(10,10), withFont:font)
+    "Watermark is good and i hope there is more than enough space for two lines".drawInRect(CGRectMake(0,height*0.75,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     CGContextSetTextDrawingMode(context, KCGTextFill)
     CGContextSetFillColorWithColor(context, UIColor.whiteColor.CGColor())
-    "Watermark".drawAtPoint(CGPointMake(10,10), withFont:font)
+    "Watermark is good and i hope there is more than enough space for two lines".drawInRect(CGRectMake(0,height*0.75,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     textImage = UIGraphicsGetImageFromCurrentImageContext();
     @image_view.setImage(textImage)
@@ -69,24 +75,33 @@ class HomeController < UIViewController
 
   def image_view
     view = UIImageView.alloc.init
-    view.frame = [[10,10],[300,370]]
+    view.frame = [[10,10],[300,400]]
     view.image = @image
     view.backgroundColor = UIColor.redColor
     view
   end
 
-  def get_image_button 
+  def get_image_album_button 
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[20,400],[75,40]]
+    button.frame = [[10,420],[50,35]]
     button.font = UIFont.systemFontOfSize(10)
     button.addTarget(self, action:'pickImage', forControlEvents:UIControlEventTouchUpInside)
-    button.setTitle('Get Image', forState:UIControlStateNormal)
+    button.setTitle('Album', forState:UIControlStateNormal)
+    button
+  end
+
+  def get_image_camera_button 
+    button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
+    button.frame = [[70,420],[50,35]]
+    button.font = UIFont.systemFontOfSize(10)
+    button.addTarget(self, action:'pickImage', forControlEvents:UIControlEventTouchUpInside)
+    button.setTitle('Camera', forState:UIControlStateNormal)
     button
   end
 
   def set_text_button 
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[105,400],[75,40]]
+    button.frame = [[130,420],[60,35]]
     button.font = UIFont.systemFontOfSize(10)
     button.addTarget(self, action:'addTextToImage', forControlEvents:UIControlEventTouchUpInside)
     button.setTitle('Set Text', forState:UIControlStateNormal)
@@ -95,7 +110,7 @@ class HomeController < UIViewController
 
   def send_to_imgur_and_email_button
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[190,400],[100,40]]
+    button.frame = [[200,420],[100,35]]
     button.font = UIFont.systemFontOfSize(10)
     button.setTitle('Imgur and Email', forState:UIControlStateNormal)
     button
