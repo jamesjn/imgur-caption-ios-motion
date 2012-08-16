@@ -16,17 +16,19 @@ class HomeController < UIViewController
       view.addSubview(get_image_camera_button) 
     end
     view.addSubview(get_image_album_button) 
-    view.addSubview(set_text_button) 
-    view.addSubview(send_to_imgur_and_email_button) 
   end
 
   def pickImage
     if Device.camera.rear?
       BW::Device.camera.rear.picture(media_types: [:image]) do |result|
+        view.addSubview(set_text_button) 
+        view.addSubview(send_to_imgur_and_email_button) 
         scale_and_set_image_view(result)
       end
     else
       BW::Device.camera.any.picture(media_types: [:image]) do |result|
+        view.addSubview(set_text_button) 
+        view.addSubview(send_to_imgur_and_email_button) 
         scale_and_set_image_view(result)
       end
     end
@@ -67,9 +69,13 @@ class HomeController < UIViewController
     "Watermark is good and i hope there is more than enough space for two lines".drawInRect(CGRectMake(0,height*0.75,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     textImage = UIGraphicsGetImageFromCurrentImageContext();
+    @image = textImage
     @image_view.setImage(textImage)
   end
-                  
+
+  def uploadAndEmail
+    url = ImgurUploader.uploadImage(@image)
+  end
 
   private
 
@@ -112,6 +118,7 @@ class HomeController < UIViewController
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
     button.frame = [[200,420],[100,35]]
     button.font = UIFont.systemFontOfSize(10)
+    button.addTarget(self, action:'uploadAndEmail', forControlEvents:UIControlEventTouchUpInside)
     button.setTitle('Imgur and Email', forState:UIControlStateNormal)
     button
   end
