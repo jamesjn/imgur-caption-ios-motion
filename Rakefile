@@ -9,4 +9,5 @@ require 'bubble-wrap/camera'
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = 'imgur-caption'
+  app.frameworks += ['MessageUI']
 end

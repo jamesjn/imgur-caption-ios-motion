@@ -1,5 +1,7 @@
 class HomeController < UIViewController
   attr_accessor :image  
+  attr_accessor :image_url
+  attr_accessor :activity_indicator
 
   def init
     self
@@ -21,15 +23,19 @@ class HomeController < UIViewController
   def pickImage
     if Device.camera.rear?
       BW::Device.camera.rear.picture(media_types: [:image]) do |result|
-        view.addSubview(set_text_button) 
-        view.addSubview(send_to_imgur_and_email_button) 
-        scale_and_set_image_view(result)
+        if(result[:original_image])
+          view.addSubview(set_text_button) 
+          view.addSubview(send_to_imgur_and_email_button) 
+          scale_and_set_image_view(result)
+        end
       end
     else
       BW::Device.camera.any.picture(media_types: [:image]) do |result|
-        view.addSubview(set_text_button) 
-        view.addSubview(send_to_imgur_and_email_button) 
-        scale_and_set_image_view(result)
+        if(result[:original_image])
+          view.addSubview(set_text_button) 
+          view.addSubview(send_to_imgur_and_email_button) 
+          scale_and_set_image_view(result)
+        end
       end
     end
   end
@@ -73,8 +79,37 @@ class HomeController < UIViewController
     @image_view.setImage(textImage)
   end
 
+  def add_activity_indicator_and_start
+    @activity_indicator = UIActivityIndicatorView.alloc.initWithActivityIndicatorStyle(UIActivityIndicatorViewStyleWhiteLarge)
+    @activity_indicator.frame = [[120,330],[50,50]]
+    @activity_indicator 
+    view.addSubview(@activity_indicator)
+    @activity_indicator.startAnimating
+  end
+
   def uploadAndEmail
-    url = ImgurUploader.uploadImage(@image)
+    add_activity_indicator_and_start
+    App.run_after(0.5) do
+      url = ImgurUploader.uploadImage(@image, self)
+    end
+  end
+
+  def mailComposeController(controller, didFinishWithResult:result, error:error)
+    self.dismissModalViewControllerAnimated(true)
+  end
+
+  def open_email(url)
+    if(MFMailComposeViewController.canSendMail)
+      mailer = MFMailComposeViewController.alloc.init
+      mailer.mailComposeDelegate = self
+      mailer.setSubject("Email from imgur")
+      emailBody = url
+      mailer.setMessageBody(emailBody, isHTML:false)
+      self.presentModalViewController(mailer, animated:true)
+    else
+      alert = UIAlertView.alloc.initWithTitle("Failure", message:"Your device can't send me", delegate:nil, cancelButton:"Ok", otherButtonTitles:nil)
+      alert.show
+    end
   end
 
   private
