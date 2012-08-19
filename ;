@@ -72,7 +72,8 @@ class HomeController < UIViewController
   end
 
   def alertView(alertView, clickedButtonAtIndex: buttonIndex)
-    addTextToImage(alertView.textFieldAtIndex(0).text)
+    addTextToImage('hi')
+    alertView.release()
   end
 
   def addTextToImage(text)
