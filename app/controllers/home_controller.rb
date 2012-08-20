@@ -12,6 +12,8 @@ class HomeController < UIViewController
 
   def viewDidLoad
     view.backgroundColor = UIColor.alloc.initWithPatternImage(UIImage.imageNamed("brushedmetal.png"))
+    @choose_image_label = choose_image_label
+    view.addSubview(@choose_image_label)
     @image_view = image_view
     view.addSubview(@image_view) 
     if Device.camera.rear?
@@ -32,6 +34,7 @@ class HomeController < UIViewController
         if(result[:original_image])
           scale_and_set_image_view(result)
           @set_text_button.setHidden(false)
+          @choose_image_label.setHidden(true)
           @send_to_imgur_and_email_button.setHidden(false)
         end
       end
@@ -40,6 +43,7 @@ class HomeController < UIViewController
         if(result[:original_image])
           scale_and_set_image_view(result)
           @set_text_button.setHidden(false)
+          @choose_image_label.setHidden(true)
           @send_to_imgur_and_email_button.setHidden(false)
         end
       end
@@ -94,7 +98,7 @@ class HomeController < UIViewController
     text.drawInRect(CGRectMake(0,height*0.75,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     textImage = UIGraphicsGetImageFromCurrentImageContext();
-    @image = textImage
+    @captioned_image = textImage
     @image_view.setImage(textImage)
   end
 
@@ -111,7 +115,8 @@ class HomeController < UIViewController
     @send_to_imgur_and_email_button.setHidden(true)
     add_activity_indicator_and_start
     App.run_after(0.5) do
-      url = ImgurUploader.uploadImage(@image, self)
+      image_to_upload = @captioned_image ? @captioned_image : @image
+      url = ImgurUploader.uploadImage(image_to_upload, self)
     end
   end
 
@@ -135,11 +140,21 @@ class HomeController < UIViewController
 
   private
 
+  def choose_image_label
+    view = UILabel.alloc.init
+    view.frame = [[10,10],[300,400]]
+    view.text = 'Please choose an image'
+    fontSize = 20
+    view.font = UIFont.fontWithName("TrebuchetMS", size:fontSize)
+    view.textAlignment = UITextAlignmentCenter
+    view.backgroundColor = UIColor.alloc.initWithPatternImage(UIImage.imageNamed("brushedmetal.png"))
+    view
+  end
+
   def image_view
     view = UIImageView.alloc.init
     view.frame = [[10,10],[300,400]]
     view.image = @image
-    view.backgroundColor = UIColor.redColor
     view
   end
 
