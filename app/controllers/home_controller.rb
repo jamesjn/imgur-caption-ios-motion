@@ -29,23 +29,23 @@ class HomeController < UIViewController
   end
 
   def pickImage
-    if Device.camera.rear?
-      BW::Device.camera.rear.picture(media_types: [:image]) do |result|
-        if(result[:original_image])
-          scale_and_set_image_view(result)
-          @set_text_button.setHidden(false)
-          @choose_image_label.setHidden(true)
-          @send_to_imgur_and_email_button.setHidden(false)
-        end
+    BW::Device.camera.any.picture(media_types: [:image]) do |result|
+      if(result[:original_image])
+        scale_and_set_image_view(result)
+        @set_text_button.setHidden(false)
+        @choose_image_label.setHidden(true)
+        @send_to_imgur_and_email_button.setHidden(false)
       end
-    else
-      BW::Device.camera.any.picture(media_types: [:image]) do |result|
-        if(result[:original_image])
-          scale_and_set_image_view(result)
-          @set_text_button.setHidden(false)
-          @choose_image_label.setHidden(true)
-          @send_to_imgur_and_email_button.setHidden(false)
-        end
+    end
+  end
+  
+  def cameraImage
+    BW::Device.camera.rear.picture(media_types: [:image]) do |result|
+      if(result[:original_image])
+        scale_and_set_image_view(result)
+        @set_text_button.setHidden(false)
+        @choose_image_label.setHidden(true)
+        @send_to_imgur_and_email_button.setHidden(false)
       end
     end
   end
@@ -171,7 +171,7 @@ class HomeController < UIViewController
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
     button.frame = [[70,420],[50,35]]
     button.font = UIFont.systemFontOfSize(10)
-    button.addTarget(self, action:'pickImage', forControlEvents:UIControlEventTouchUpInside)
+    button.addTarget(self, action:'cameraImage', forControlEvents:UIControlEventTouchUpInside)
     button.setTitle('Camera', forState:UIControlStateNormal)
     button
   end

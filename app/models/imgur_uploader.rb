@@ -9,7 +9,7 @@ class ImgurUploader
     def uploadImage(image, controller)
       imageData = UIImagePNGRepresentation(image)     
       imageStr = cgi_escape(imageData.base64Encoding)
-      data = {key:'', image:imageStr}
+      data = {key: ApiKeys::IMGUR_KEY, image:imageStr}
       original_url = ""
       BubbleWrap::HTTP.post("http://api.imgur.com/2/upload.json", {payload: data}) do |response|
         if response.ok?
