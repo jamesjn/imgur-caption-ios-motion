@@ -105,7 +105,7 @@ class HomeController < UIViewController
 
   def add_activity_indicator_and_start
     @activity_indicator = UIActivityIndicatorView.alloc.initWithActivityIndicatorStyle(UIActivityIndicatorViewStyleWhiteLarge)
-    @activity_indicator.frame = [[120,330],[50,50]]
+    @activity_indicator.frame = [[135,330],[50,50]]
     @activity_indicator 
     view.addSubview(@activity_indicator)
     @activity_indicator.startAnimating
