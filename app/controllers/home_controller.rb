@@ -51,8 +51,9 @@ class HomeController < UIViewController
   end
 
   def scale_and_set_image_view(result)
-    @image = result[:original_image]      
-    smaller_image = scaleToSize(@image, [480,640])
+    @captioned_image = nil
+    image = result[:original_image]      
+    smaller_image = scaleToSize(image, [480,640])
     @image_view.setImage(smaller_image)
     @image = smaller_image
     dismissModalViewControllerAnimated(true)
