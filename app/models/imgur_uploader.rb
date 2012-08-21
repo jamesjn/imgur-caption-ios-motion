@@ -7,7 +7,7 @@ class ImgurUploader
     end
 
     def uploadImage(image, controller)
-      imageData = UIImagePNGRepresentation(image)     
+      imageData = UIImageJPEGRepresentation(image, 0.5)     
       imageStr = cgi_escape(imageData.base64Encoding)
       data = {key: ApiKeys::IMGUR_KEY, image:imageStr}
       original_url = ""
