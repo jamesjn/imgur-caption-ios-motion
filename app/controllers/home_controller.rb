@@ -119,10 +119,12 @@ class HomeController < UIViewController
 
   def uploadAndEmail
     @send_to_imgur_and_email_button.setTitle('Send email', forState:UIControlStateNormal)
+    @send_to_imgur_and_email_button.setHidden(true)
     add_activity_indicator_and_start
     App.run_after(0.5) do
       if @uploaded_picture
         @activity_indicator.stopAnimating
+        @send_to_imgur_and_email_button.setHidden(false)
         open_email(@url)
       else
         image_to_upload = @captioned_image ? @captioned_image : @image
@@ -133,6 +135,7 @@ class HomeController < UIViewController
   end
 
   def mailComposeController(controller, didFinishWithResult:result, error:error)
+    @send_to_imgur_and_email_button.setHidden(false)
     self.dismissModalViewControllerAnimated(true)
   end
 
@@ -141,7 +144,7 @@ class HomeController < UIViewController
     if(MFMailComposeViewController.canSendMail)
       mailer = MFMailComposeViewController.alloc.init
       mailer.mailComposeDelegate = self
-      mailer.setSubject("Email from imgur")
+      mailer.setSubject("Email from Imgur Caption")
       emailBody = url
       mailer.setMessageBody(emailBody, isHTML:false)
       self.presentModalViewController(mailer, animated:true)
