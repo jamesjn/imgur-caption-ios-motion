@@ -35,6 +35,8 @@ class HomeController < UIViewController
         @set_text_button.setHidden(false)
         @choose_image_label.setHidden(true)
         @send_to_imgur_and_email_button.setHidden(false)
+        @uploaded_picture = false
+        @send_to_imgur_and_email_button.setTitle('Imgur and Email', forState:UIControlStateNormal)
       end
     end
   end
@@ -46,6 +48,8 @@ class HomeController < UIViewController
         @set_text_button.setHidden(false)
         @choose_image_label.setHidden(true)
         @send_to_imgur_and_email_button.setHidden(false)
+        @uploaded_picture = false
+        @send_to_imgur_and_email_button.setTitle('Imgur and Email', forState:UIControlStateNormal)
       end
     end
   end
@@ -92,15 +96,17 @@ class HomeController < UIViewController
     CGContextSetTextDrawingMode(context, KCGTextStroke)
     CGContextSetLineWidth(context, fontSize/18);
 
-    text.drawInRect(CGRectMake(0,height*0.75,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
+    text.drawInRect(CGRectMake(0,height*0.80,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     CGContextSetTextDrawingMode(context, KCGTextFill)
     CGContextSetFillColorWithColor(context, UIColor.whiteColor.CGColor())
-    text.drawInRect(CGRectMake(0,height*0.75,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
+    text.drawInRect(CGRectMake(0,height*0.80,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     textImage = UIGraphicsGetImageFromCurrentImageContext();
     @captioned_image = textImage
     @image_view.setImage(textImage)
+    @uploaded_picture = false
+    @send_to_imgur_and_email_button.setTitle('Imgur and Email', forState:UIControlStateNormal)
   end
 
   def add_activity_indicator_and_start
@@ -112,12 +118,17 @@ class HomeController < UIViewController
   end
 
   def uploadAndEmail
-    @set_text_button.setHidden(true)
-    @send_to_imgur_and_email_button.setHidden(true)
+    @send_to_imgur_and_email_button.setTitle('Send email', forState:UIControlStateNormal)
     add_activity_indicator_and_start
     App.run_after(0.5) do
-      image_to_upload = @captioned_image ? @captioned_image : @image
-      url = ImgurUploader.uploadImage(image_to_upload, self)
+      if @uploaded_picture
+        @activity_indicator.stopAnimating
+        open_email(@url)
+      else
+        image_to_upload = @captioned_image ? @captioned_image : @image
+        ImgurUploader.uploadImage(image_to_upload, self)
+        @uploaded_picture = true
+      end
     end
   end
 
@@ -126,6 +137,7 @@ class HomeController < UIViewController
   end
 
   def open_email(url)
+    @url = url
     if(MFMailComposeViewController.canSendMail)
       mailer = MFMailComposeViewController.alloc.init
       mailer.mailComposeDelegate = self
