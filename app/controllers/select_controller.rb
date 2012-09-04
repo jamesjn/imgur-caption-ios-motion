@@ -1,14 +1,24 @@
 class SelectController < UIViewController
-  attr_accessor :image  
   attr_accessor :image_url
   attr_accessor :activity_indicator
 
+  def initWithList(image_list)
+    @list = image_list
+    self.init
+  end
+
   def init
-    self.tabBarItem = UITabBarItem.alloc.initWithTitle('Select', image:UIImage.imageNamed('camera_icon.png'), tag:2)
+    self.tabBarItem = UITabBarItem.alloc.initWithTitle('Select Image', image:UIImage.imageNamed('camera_icon.png'), tag:2)
     self
   end
 
   def viewWillAppear(animated)
+    if @list.current_image 
+      @image_view.image = @list.current_image
+      @choose_image_label.setHidden(true)
+    else
+      @choose_image_label.setHidden(false)
+    end
   end
 
   def viewDidLoad
@@ -21,23 +31,19 @@ class SelectController < UIViewController
       view.addSubview(get_image_camera_button) 
     end
     view.addSubview(get_image_album_button) 
-    @set_text_button = set_text_button
-    @set_text_button.setHidden(true)
-    view.addSubview(@set_text_button) 
-    @send_to_imgur_and_email_button = send_to_imgur_and_email_button
-    @send_to_imgur_and_email_button.setHidden(true)
-    view.addSubview(@send_to_imgur_and_email_button) 
+    @upload_to_imgur_button = upload_to_imgur_button
+    @upload_to_imgur_button.setHidden(true)
+    view.addSubview(@upload_to_imgur_button) 
   end
 
   def pickImage
     BW::Device.camera.any.picture(media_types: [:image]) do |result|
       if(result[:original_image])
         scale_and_set_image_view(result)
-        @set_text_button.setHidden(false)
         @choose_image_label.setHidden(true)
-        @send_to_imgur_and_email_button.setHidden(false)
-        @uploaded_picture = false
-        @send_to_imgur_and_email_button.setTitle('Imgur and Email', forState:UIControlStateNormal)
+        @upload_to_imgur_button.setHidden(false)
+        @list.uploaded_picture = false
+        @upload_to_imgur_button.setTitle('Upload to Imgur', forState:UIControlStateNormal)
       end
     end
   end
@@ -46,11 +52,10 @@ class SelectController < UIViewController
     BW::Device.camera.rear.picture(media_types: [:image]) do |result|
       if(result[:original_image])
         scale_and_set_image_view(result)
-        @set_text_button.setHidden(false)
         @choose_image_label.setHidden(true)
-        @send_to_imgur_and_email_button.setHidden(false)
-        @uploaded_picture = false
-        @send_to_imgur_and_email_button.setTitle('Imgur and Email', forState:UIControlStateNormal)
+        @upload_to_imgur_button.setHidden(false)
+        @list.uploaded_picture = false
+        @upload_to_imgur_button.setTitle('Upload to Imgur', forState:UIControlStateNormal)
       end
     end
   end
@@ -60,7 +65,8 @@ class SelectController < UIViewController
     image = result[:original_image]      
     smaller_image = scaleToSize(image, [480,640])
     @image_view.setImage(smaller_image)
-    @image = smaller_image
+    @list.current_image = smaller_image
+    @list.current_orig_image = smaller_image
     dismissModalViewControllerAnimated(true)
   end
 
@@ -72,44 +78,6 @@ class SelectController < UIViewController
     scaledImage
   end
 
-  def alertForText
-    alert = UIAlertView.alloc.initWithTitle("Caption", message:"Please enter your caption", delegate:self, cancelButtonTitle:"Enter", otherButtonTitles:nil)
-    alert.alertViewStyle = UIAlertViewStylePlainTextInput
-    alertTextField = alert.textFieldAtIndex(0)
-    alertTextField.keyboardType = UIKeyboardTypeAlphabet
-    alertTextField.placeholder = "Your caption"
-    alert.show()
-  end
-
-  def alertView(alertView, clickedButtonAtIndex: buttonIndex)
-    addTextToImage(alertView.textFieldAtIndex(0).text)
-  end
-
-  def addTextToImage(text)
-    myImage = @image 
-    height = myImage.size.height
-    width = myImage.size.width
-    UIGraphicsBeginImageContext(myImage.size)
-    context = UIGraphicsGetCurrentContext();
-    myImage.drawAtPoint(CGPointZero)
-    fontSize = height/20
-    font = UIFont.fontWithName("TrebuchetMS", size:fontSize)
-    CGContextSetTextDrawingMode(context, KCGTextStroke)
-    CGContextSetLineWidth(context, fontSize/18);
-
-    text.drawInRect(CGRectMake(0,height*0.80,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
-
-    CGContextSetTextDrawingMode(context, KCGTextFill)
-    CGContextSetFillColorWithColor(context, UIColor.whiteColor.CGColor())
-    text.drawInRect(CGRectMake(0,height*0.80,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
-
-    textImage = UIGraphicsGetImageFromCurrentImageContext();
-    @captioned_image = textImage
-    @image_view.setImage(textImage)
-    @uploaded_picture = false
-    @send_to_imgur_and_email_button.setTitle('Imgur and Email', forState:UIControlStateNormal)
-  end
-
   def add_activity_indicator_and_start
     @activity_indicator = UIActivityIndicatorView.alloc.initWithActivityIndicatorStyle(UIActivityIndicatorViewStyleWhiteLarge)
     @activity_indicator.frame = [[135,330],[50,50]]
@@ -118,40 +86,13 @@ class SelectController < UIViewController
     @activity_indicator.startAnimating
   end
 
-  def uploadAndEmail
-    @send_to_imgur_and_email_button.setTitle('Send email', forState:UIControlStateNormal)
-    @send_to_imgur_and_email_button.setHidden(true)
+  def uploadToImgur
+    @upload_to_imgur_button.setHidden(true)
     add_activity_indicator_and_start
     App.run_after(0.5) do
-      if @uploaded_picture
-        @activity_indicator.stopAnimating
-        @send_to_imgur_and_email_button.setHidden(false)
-        open_email(@url)
-      else
-        image_to_upload = @captioned_image ? @captioned_image : @image
-        ImgurUploader.uploadImage(image_to_upload, self)
-        @uploaded_picture = true
-      end
-    end
-  end
-
-  def mailComposeController(controller, didFinishWithResult:result, error:error)
-    @send_to_imgur_and_email_button.setHidden(false)
-    self.dismissModalViewControllerAnimated(true)
-  end
-
-  def open_email(url)
-    @url = url
-    if(MFMailComposeViewController.canSendMail)
-      mailer = MFMailComposeViewController.alloc.init
-      mailer.mailComposeDelegate = self
-      mailer.setSubject("Email from Imgur Caption")
-      emailBody = url
-      mailer.setMessageBody(emailBody, isHTML:false)
-      self.presentModalViewController(mailer, animated:true)
-    else
-      alert = UIAlertView.alloc.initWithTitle("Failure", message:"Your device can't send me", delegate:nil, cancelButton:"Ok", otherButtonTitles:nil)
-      alert.show
+      image_to_upload = @captioned_image ? @captioned_image : @list.current_image
+      ImgurUploader.uploadImage(image_to_upload, @list, self)
+      @list.uploaded_picture = true
     end
   end
 
@@ -160,7 +101,7 @@ class SelectController < UIViewController
   def choose_image_label
     view = UILabel.alloc.init
     view.frame = [[10,10],[300,400]]
-    view.text = 'Please choose an image'
+    view.text = 'Please select an image'
     fontSize = 20
     view.font = UIFont.fontWithName("TrebuchetMS", size:fontSize)
     view.textAlignment = UITextAlignmentCenter
@@ -171,7 +112,7 @@ class SelectController < UIViewController
   def image_view
     view = UIImageView.alloc.init
     view.frame = [[30,10],[255,340]]
-    view.image = @image
+    view.image = @list.current_image
     view
   end
 
@@ -193,21 +134,12 @@ class SelectController < UIViewController
     button
   end
 
-  def set_text_button 
-    button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[130,370],[60,35]]
-    button.font = UIFont.systemFontOfSize(10)
-    button.addTarget(self, action:'alertForText', forControlEvents:UIControlEventTouchUpInside)
-    button.setTitle('Set Text', forState:UIControlStateNormal)
-    button
-  end
-
-  def send_to_imgur_and_email_button
+  def upload_to_imgur_button
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
     button.frame = [[200,370],[100,35]]
     button.font = UIFont.systemFontOfSize(10)
-    button.addTarget(self, action:'uploadAndEmail', forControlEvents:UIControlEventTouchUpInside)
-    button.setTitle('Imgur and Email', forState:UIControlStateNormal)
+    button.addTarget(self, action:'uploadToImgur', forControlEvents:UIControlEventTouchUpInside)
+    button.setTitle('Upload to Imgur', forState:UIControlStateNormal)
     button
   end
 
