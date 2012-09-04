@@ -42,7 +42,6 @@ class SelectController < UIViewController
         scale_and_set_image_view(result)
         @choose_image_label.setHidden(true)
         @upload_to_imgur_button.setHidden(false)
-        @list.uploaded_picture = false
         @upload_to_imgur_button.setTitle('Upload to Imgur', forState:UIControlStateNormal)
       end
     end
@@ -54,7 +53,6 @@ class SelectController < UIViewController
         scale_and_set_image_view(result)
         @choose_image_label.setHidden(true)
         @upload_to_imgur_button.setHidden(false)
-        @list.uploaded_picture = false
         @upload_to_imgur_button.setTitle('Upload to Imgur', forState:UIControlStateNormal)
       end
     end
@@ -90,9 +88,8 @@ class SelectController < UIViewController
     @upload_to_imgur_button.setHidden(true)
     add_activity_indicator_and_start
     App.run_after(0.5) do
-      image_to_upload = @captioned_image ? @captioned_image : @list.current_image
+      image_to_upload = @list.current_image
       ImgurUploader.uploadImage(image_to_upload, @list, self)
-      @list.uploaded_picture = true
     end
   end
 
@@ -118,19 +115,19 @@ class SelectController < UIViewController
 
   def get_image_album_button 
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[10,370],[50,35]]
+    button.frame = [[10,370],[80,35]]
     button.font = UIFont.systemFontOfSize(10)
     button.addTarget(self, action:'pickImage', forControlEvents:UIControlEventTouchUpInside)
-    button.setTitle('Album', forState:UIControlStateNormal)
+    button.setTitle('Use Album', forState:UIControlStateNormal)
     button
   end
 
   def get_image_camera_button 
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[70,370],[50,35]]
+    button.frame = [[105,370],[80,35]]
     button.font = UIFont.systemFontOfSize(10)
     button.addTarget(self, action:'cameraImage', forControlEvents:UIControlEventTouchUpInside)
-    button.setTitle('Camera', forState:UIControlStateNormal)
+    button.setTitle('Use Camera', forState:UIControlStateNormal)
     button
   end
 

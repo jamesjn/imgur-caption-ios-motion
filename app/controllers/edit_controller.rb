@@ -12,8 +12,8 @@ class EditController < UIViewController
   end
 
   def viewWillAppear(animated)
-    if @list.current_image 
-      @image_view.image = @list.current_image
+    @image_view.image = @list.current_image
+    if @list.current_image
       @choose_image_label.setHidden(true)
       @set_text_button.setHidden(false)
       @upload_to_imgur_button.setHidden(false)
@@ -54,8 +54,7 @@ class EditController < UIViewController
   end
 
   def addTextToImage(text)
-    p text
-    myImage = @list.current_orig_image
+    myImage = @list.current_image
     height = myImage.size.height
     width = myImage.size.width
     UIGraphicsBeginImageContext(myImage.size)
@@ -73,19 +72,17 @@ class EditController < UIViewController
     text.drawInRect(CGRectMake(0,height*0.80,width,height/4), withFont:font, lineBreakMode: UILineBreakModeWordWrap, alignment: UITextAlignmentCenter)
 
     textImage = UIGraphicsGetImageFromCurrentImageContext();
-    @captioned_image = textImage
     @image_view.setImage(textImage)
     @list.current_image = textImage
-    @list.uploaded_picture = false
+    @upload_to_imgur_button.setHidden(false)
   end
 
   def uploadToImgur
     @upload_to_imgur_button.setHidden(true)
     add_activity_indicator_and_start
     App.run_after(0.5) do
-      image_to_upload = @captioned_image ? @captioned_image : @list.current_image
+      image_to_upload = @list.current_image
       ImgurUploader.uploadImage(image_to_upload, @list, self)
-      @list.uploaded_picture = true
     end
   end
 
@@ -108,10 +105,10 @@ class EditController < UIViewController
 
   def set_text_button 
     button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    button.frame = [[130,370],[60,35]]
+    button.frame = [[125,370],[60,35]]
     button.font = UIFont.systemFontOfSize(10)
     button.addTarget(self, action:'alertForText', forControlEvents:UIControlEventTouchUpInside)
-    button.setTitle('Set Text', forState:UIControlStateNormal)
+    button.setTitle('Add Text', forState:UIControlStateNormal)
     button
   end
 
@@ -141,6 +138,7 @@ class EditController < UIViewController
     alert.addButtonWithTitle("Gamma")
     alert.addButtonWithTitle("Invert")
     alert.addButtonWithTitle("Sephia")
+    @upload_to_imgur_button.setHidden(false)
     alert.show()
   end
 

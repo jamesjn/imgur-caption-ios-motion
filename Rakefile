@@ -14,6 +14,6 @@ Motion::Project::App.setup do |app|
   app.device_family = :iphone
   app.icons = ["Icon.png", "Icon@2x.png", "Default.png"]
   app.frameworks += ['MessageUI']
-  app.provisioning_profile = '/Users/jc582/Library/MobileDevice/Provisioning/481E5B09-CA1C-4517-BEEA-0C9C08A47518.mobileprovision'
-  app.codesign_certificate = 'iPhone Distribution: James Chiang'
+  #app.provisioning_profile = '/Users/jc582/Library/MobileDevice/Provisioning/481E5B09-CA1C-4517-BEEA-0C9C08A47518.mobileprovision'
+  #app.codesign_certificate = 'iPhone Distribution: James Chiang'
 end

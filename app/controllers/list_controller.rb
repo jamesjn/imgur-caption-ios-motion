@@ -29,7 +29,8 @@ class ListController < UITableViewController
     cell = tableView.dequeueReusableCellWithIdentifier(CellID) || UITableViewCell.alloc.initWithStyle(UITableViewCellStyleSubtitle, reuseIdentifier:CellID)
     imageItem = @images_list[indexPath.row]
     cell.textLabel.text = imageItem[:original_url]
-    cell.image = load_picture_from(imageItem[:small_url])
+    cell.image = UIImage.imageNamed('downloading.png')
+    load_picture_from(imageItem[:small_url], indexPath)
     cell
   end
 
@@ -37,6 +38,7 @@ class ListController < UITableViewController
     @current_item = @images_list[indexPath.row]
     alert = UIAlertView.alloc.initWithTitle("Choose your option", message:"", delegate:self, cancelButtonTitle:"Cancel", otherButtonTitles:nil)
     alert.addButtonWithTitle("Email Imgur Link")
+    alert.addButtonWithTitle("Delete from list")
     alert.show()
   end
 
@@ -47,6 +49,10 @@ class ListController < UITableViewController
     when 1
       alertView.dismissWithClickedButtonIndex(1, animated:false)
       open_email(@current_item[:original_url])
+    when 2
+      alertView.dismissWithClickedButtonIndex(2, animated:false)
+      @images_list.delete(@current_item)
+      view.reloadData
     end
   end
 
@@ -71,8 +77,11 @@ class ListController < UITableViewController
 
   private
 
-  def load_picture_from(url)
-    url = NSURL.URLWithString(url)
-    image = UIImage.imageWithData(NSData.dataWithContentsOfURL(url))
+  def load_picture_from(url, indexPath)
+    BW::HTTP.get(url) do |response|
+      image = UIImage.imageWithData(response.body)
+      cell = self.view.cellForRowAtIndexPath(indexPath)
+      cell.imageView.image = image
+    end
   end
 end

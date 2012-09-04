@@ -28,19 +28,21 @@ class ImgurUploader
 
 end
 
-class Response
-  attr_accessor :body
-  def ok?
-    true
-  end
-end
-
-class BubbleWrap::HTTP
-  def self.post url, options
-    response = ::Response.new
-    response.body = '{"upload":{"links":{"original":"http://i.imgur.com/yIJ00.jpg","imgur_page":"http://imgur.com/yIJ00","delete_page":"http://imgur.com/delete/TngVYOU4146xQFe","small_square":"http://i.imgur.com/yIJ00s.jpg","large_thumbnail":"http://i.imgur.com/yIJ00l.jpg"}}}'
-    yield(response)
-  end
-end
-
-    '{"upload":{"image":{"name":null,"title":null,"caption":null,"hash":"yIJ00","deletehash":"TngVYOU4146xQFe","datetime":"2012-09-03 22:59:27","type":"image/jpeg","animated":"false","width":480,"height":640,"size":37600,"views":0,"bandwidth":0},"links":}}}'
+#for testing
+#
+#class Response
+#  attr_accessor :body
+#  def ok?
+#    true
+#  end
+#end
+#
+#class BubbleWrap::HTTP
+#  def self.post url, options
+#    response = ::Response.new
+#    response.body = '{"upload":{"links":{"original":"http://i.imgur.com/yIJ00.jpg","imgur_page":"http://imgur.com/yIJ00","delete_page":"http://imgur.com/delete/TngVYOU4146xQFe","small_square":"http://i.imgur.com/yIJ00s.jpg","large_thumbnail":"http://i.imgur.com/yIJ00l.jpg"}}}'
+#    yield(response)
+#  end
+#end
+#
+#    '{"upload":{"image":{"name":null,"title":null,"caption":null,"hash":"yIJ00","deletehash":"TngVYOU4146xQFe","datetime":"2012-09-03 22:59:27","type":"image/jpeg","animated":"false","width":480,"height":640,"size":37600,"views":0,"bandwidth":0},"links":}}}'
