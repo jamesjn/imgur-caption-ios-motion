@@ -137,7 +137,7 @@ class EditController < UIViewController
     alert.addButtonWithTitle("Hue")
     alert.addButtonWithTitle("Gamma")
     alert.addButtonWithTitle("Invert")
-    alert.addButtonWithTitle("Sephia")
+    alert.addButtonWithTitle("Sepia")
     @upload_to_imgur_button.setHidden(false)
     alert.show()
   end
